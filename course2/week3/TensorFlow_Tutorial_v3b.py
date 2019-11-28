@@ -33,7 +33,7 @@
 # 
 # To start, you will import the library:
 
-# In[ ]:
+# In[1]:
 
 import math
 import numpy as np
@@ -50,7 +50,7 @@ np.random.seed(1)
 # Now that you have imported the library, we will walk you through its different applications. You will start with an example, where we compute for you the loss of one training example. 
 # $$loss = \mathcal{L}(\hat{y}, y) = (\hat y^{(i)} - y^{(i)})^2 \tag{1}$$
 
-# In[ ]:
+# In[2]:
 
 y_hat = tf.constant(36, name='y_hat')            # Define y_hat constant. Set to 36.
 y = tf.constant(39, name='y')                    # Define y. Set to 39
@@ -76,7 +76,7 @@ with tf.Session() as session:                    # Create a session and print th
 # 
 # Now let us look at an easy example. Run the cell below:
 
-# In[ ]:
+# In[3]:
 
 a = tf.constant(2)
 b = tf.constant(10)
@@ -86,7 +86,7 @@ print(c)
 
 # As expected, you will not see 20! You got a tensor saying that the result is a tensor that does not have the shape attribute, and is of type "int32". All you did was put in the 'computation graph', but you have not run this computation yet. In order to actually multiply the two numbers, you will have to create a session and run it.
 
-# In[ ]:
+# In[4]:
 
 sess = tf.Session()
 print(sess.run(c))
@@ -97,7 +97,7 @@ print(sess.run(c))
 # Next, you'll also have to know about placeholders. A placeholder is an object whose value you can specify only later. 
 # To specify values for a placeholder, you can pass in values by using a "feed dictionary" (`feed_dict` variable). Below, we created a placeholder for x. This allows us to pass in a number later when we run the session. 
 
-# In[ ]:
+# In[5]:
 
 # Change the value of x in the feed_dict
 
@@ -125,7 +125,7 @@ sess.close()
 # - np.random.randn(...) to initialize randomly
 # 
 
-# In[ ]:
+# In[8]:
 
 # GRADED FUNCTION: linear_function
 
@@ -147,17 +147,17 @@ def linear_function():
     (Do not re-arrange the order).
     """
     ### START CODE HERE ### (4 lines of code)
-    X = None
-    W = None
-    b = None
-    Y = None
+    X = tf.constant(np.random.randn(3,1), name="X")
+    W = tf.constant(np.random.randn(4,3), name="W")
+    b = tf.constant(np.random.randn(4,1), name="b")
+    Y = tf.add(tf.matmul(W,X), b)
     ### END CODE HERE ### 
     
     # Create the session using tf.Session() and run it with sess.run(...) on the variable you want to calculate
     
     ### START CODE HERE ###
-    sess = None
-    result = None
+    sess = tf.Session()
+    result = sess.run(Y)
     ### END CODE HERE ### 
     
     # close the session 
@@ -166,7 +166,7 @@ def linear_function():
     return result
 
 
-# In[ ]:
+# In[9]:
 
 print( "result = \n" + str(linear_function()))
 
@@ -211,7 +211,7 @@ print( "result = \n" + str(linear_function()))
 # ```
 # 
 
-# In[ ]:
+# In[12]:
 
 # GRADED FUNCTION: sigmoid
 
@@ -228,23 +228,23 @@ def sigmoid(z):
     
     ### START CODE HERE ### ( approx. 4 lines of code)
     # Create a placeholder for x. Name it 'x'.
-    x = None
+    x = tf.placeholder(tf.float32, name="x")
 
     # compute sigmoid(x)
-    sigmoid = None
+    sigmoid = tf.sigmoid(x)
 
     # Create a session, and run it. Please use the method 2 explained above. 
     # You should use a feed_dict to pass z's value to x. 
-    None
+    with  tf.Session() as sess:
         # Run session and call the output "result"
-        result = None
+        result = sess.run(sigmoid, feed_dict = {x: z})
 
     ### END CODE HERE ###
     
     return result
 
 
-# In[ ]:
+# In[13]:
 
 print ("sigmoid(0) = " + str(sigmoid(0)))
 print ("sigmoid(12) = " + str(sigmoid(12)))
@@ -297,7 +297,7 @@ print ("sigmoid(12) = " + str(sigmoid(12)))
 # 
 # 
 
-# In[ ]:
+# In[30]:
 
 # GRADED FUNCTION: cost
 
@@ -319,27 +319,27 @@ def cost(logits, labels):
     ### START CODE HERE ### 
     
     # Create the placeholders for "logits" (z) and "labels" (y) (approx. 2 lines)
-    z = None
-    y = None
+    z = tf.placeholder(tf.float32, name="z")
+    y = tf.placeholder(tf.float32, name="y")
     
     # Use the loss function (approx. 1 line)
-    cost = None
+    cost = tf.nn.sigmoid_cross_entropy_with_logits(logits = z,  labels = y)
     
     # Create a session (approx. 1 line). See method 1 above.
-    sess = None
+    sess = tf.Session()
     
     # Run the session (approx. 1 line).
-    cost = None
+    cost = sess.run(cost, feed_dict={z:logits, y:labels})
     
     # Close the session (approx. 1 line). See method 1 above.
-    None
+    sess.close()
     
     ### END CODE HERE ###
     
     return cost
 
 
-# In[ ]:
+# In[31]:
 
 logits = np.array([0.2,0.4,0.7,0.9])
 
@@ -366,7 +366,7 @@ print ("cost = " + str(cost))
 # 
 # **Exercise:** Implement the function below to take one vector of labels and the total number of classes $C$, and return the one hot encoding. Use `tf.one_hot()` to do this. 
 
-# In[ ]:
+# In[59]:
 
 # GRADED FUNCTION: one_hot_matrix
 
@@ -387,26 +387,26 @@ def one_hot_matrix(labels, C):
     ### START CODE HERE ###
     
     # Create a tf.constant equal to C (depth), name it 'C'. (approx. 1 line)
-    C = None
+    C = tf.constant(C, name="C")
     
     # Use tf.one_hot, be careful with the axis (approx. 1 line)
-    one_hot_matrix = None
+    one_hot_matrix = tf.one_hot(labels, C, axis=0)
     
     # Create the session (approx. 1 line)
-    sess = None
+    sess = tf.Session()
     
     # Run the session (approx. 1 line)
-    one_hot = None
+    one_hot = sess.run(one_hot_matrix)
     
     # Close the session (approx. 1 line). See method 1 above.
-    None
+    sess.close()
     
     ### END CODE HERE ###
     
     return one_hot
 
 
-# In[ ]:
+# In[60]:
 
 labels = np.array([1,2,3,0,2,1])
 one_hot = one_hot_matrix(labels, C = 4)
@@ -432,7 +432,7 @@ print ("one_hot = \n" + str(one_hot))
 #  - tf.ones(shape)
 # 
 
-# In[ ]:
+# In[61]:
 
 # GRADED FUNCTION: ones
 
@@ -450,22 +450,22 @@ def ones(shape):
     ### START CODE HERE ###
     
     # Create "ones" tensor using tf.ones(...). (approx. 1 line)
-    ones = None
+    ones = tf.ones(shape)
     
     # Create the session (approx. 1 line)
-    sess = None
+    sess = tf.Session()
     
     # Run the session to compute 'ones' (approx. 1 line)
-    ones = None
+    ones = sess.run(ones)
     
     # Close the session (approx. 1 line). See method 1 above.
-    None
+    sess.close()
     
     ### END CODE HERE ###
     return ones
 
 
-# In[ ]:
+# In[62]:
 
 print ("ones = " + str(ones([3])))
 
@@ -508,7 +508,7 @@ print ("ones = " + str(ones([3])))
 # 
 # Run the following code to load the dataset.
 
-# In[ ]:
+# In[63]:
 
 # Loading the dataset
 X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
@@ -516,17 +516,17 @@ X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
 
 # Change the index below and run the cell to visualize some examples in the dataset.
 
-# In[ ]:
+# In[66]:
 
 # Example of a picture
-index = 0
+index = 3
 plt.imshow(X_train_orig[index])
 print ("y = " + str(np.squeeze(Y_train_orig[:, index])))
 
 
 # As usual you flatten the image dataset, then normalize it by dividing by 255. On top of that, you will convert each label to a one-hot vector as shown in Figure 1. Run the cell below to do so.
 
-# In[ ]:
+# In[67]:
 
 # Flatten the training and test images
 X_train_flatten = X_train_orig.reshape(X_train_orig.shape[0], -1).T
@@ -558,7 +558,7 @@ print ("Y_test shape: " + str(Y_test.shape))
 # 
 # **Exercise:** Implement the function below to create the placeholders in tensorflow.
 
-# In[ ]:
+# In[72]:
 
 # GRADED FUNCTION: create_placeholders
 
@@ -580,14 +580,14 @@ def create_placeholders(n_x, n_y):
     """
 
     ### START CODE HERE ### (approx. 2 lines)
-    X = None
-    Y = None
+    X = tf.placeholder(tf.float32, shape=[n_x, None], name="X")
+    Y = tf.placeholder(tf.float32, shape=[n_y, None], name="Y")
     ### END CODE HERE ###
     
     return X, Y
 
 
-# In[ ]:
+# In[73]:
 
 X, Y = create_placeholders(12288, 6)
 print ("X = " + str(X))
@@ -628,7 +628,7 @@ print ("Y = " + str(Y))
 # ```
 # Please use `seed = 1` to make sure your results match ours.
 
-# In[ ]:
+# In[77]:
 
 # GRADED FUNCTION: initialize_parameters
 
@@ -649,12 +649,12 @@ def initialize_parameters():
     tf.set_random_seed(1)                   # so that your "random" numbers match ours
         
     ### START CODE HERE ### (approx. 6 lines of code)
-    W1 = None
-    b1 = None
-    W2 = None
-    b2 = None
-    W3 = None
-    b3 = None
+    W1 = tf.get_variable("W1", [25,12288], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    b1 = tf.get_variable("b1", [25,1], initializer = tf.zeros_initializer())
+    W2 = tf.get_variable("W2", [12,25], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    b2 = tf.get_variable("b2", [12,1], initializer = tf.zeros_initializer())
+    W3 = tf.get_variable("W3", [6,12], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    b3 = tf.get_variable("b3", [6,1], initializer = tf.zeros_initializer())
     ### END CODE HERE ###
 
     parameters = {"W1": W1,
@@ -667,7 +667,7 @@ def initialize_parameters():
     return parameters
 
 
-# In[ ]:
+# In[78]:
 
 tf.reset_default_graph()
 with tf.Session() as sess:
@@ -730,7 +730,7 @@ with tf.Session() as sess:
 # 
 # 
 
-# In[ ]:
+# In[79]:
 
 # GRADED FUNCTION: forward_propagation
 
@@ -756,17 +756,17 @@ def forward_propagation(X, parameters):
     b3 = parameters['b3']
     
     ### START CODE HERE ### (approx. 5 lines)              # Numpy Equivalents:
-    Z1 = None                                              # Z1 = np.dot(W1, X) + b1
-    A1 = None                                              # A1 = relu(Z1)
-    Z2 = None                                              # Z2 = np.dot(W2, A1) + b2
-    A2 = None                                              # A2 = relu(Z2)
-    Z3 = None                                              # Z3 = np.dot(W3, A2) + b3
+    Z1 = tf.add(tf.matmul(W1, X), b1)                                              # Z1 = np.dot(W1, X) + b1
+    A1 = tf.nn.relu(Z1)                                              # A1 = relu(Z1)
+    Z2 = tf.add(tf.matmul(W2, A1), b2)                                              # Z2 = np.dot(W2, A1) + b2
+    A2 = tf.nn.relu(Z2)                                              # A2 = relu(Z2)
+    Z3 = tf.add(tf.matmul(W3, A2), b3)                                              # Z3 = np.dot(W3, A2) + b3
     ### END CODE HERE ###
     
     return Z3
 
 
-# In[ ]:
+# In[80]:
 
 tf.reset_default_graph()
 
@@ -803,7 +803,7 @@ with tf.Session() as sess:
 # - It is important to know that the "`logits`" and "`labels`" inputs of `tf.nn.softmax_cross_entropy_with_logits` are expected to be of shape (number of examples, num_classes). We have thus transposed Z3 and Y for you.
 # - Besides, `tf.reduce_mean` basically does the summation over the examples.
 
-# In[ ]:
+# In[81]:
 
 # GRADED FUNCTION: compute_cost 
 
@@ -824,13 +824,13 @@ def compute_cost(Z3, Y):
     labels = tf.transpose(Y)
     
     ### START CODE HERE ### (1 line of code)
-    cost = None
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = logits, labels = labels))
     ### END CODE HERE ###
     
     return cost
 
 
-# In[ ]:
+# In[82]:
 
 tf.reset_default_graph()
 
@@ -882,7 +882,7 @@ with tf.Session() as sess:
 # 
 # **Exercise:** Implement the model. You will be calling the functions you had previously implemented.
 
-# In[ ]:
+# In[85]:
 
 def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
           num_epochs = 1500, minibatch_size = 32, print_cost = True):
@@ -912,27 +912,27 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
     
     # Create Placeholders of shape (n_x, n_y)
     ### START CODE HERE ### (1 line)
-    X, Y = None
+    X, Y = create_placeholders(n_x, n_y)
     ### END CODE HERE ###
 
     # Initialize parameters
     ### START CODE HERE ### (1 line)
-    parameters = None
+    parameters = initialize_parameters()
     ### END CODE HERE ###
     
     # Forward propagation: Build the forward propagation in the tensorflow graph
     ### START CODE HERE ### (1 line)
-    Z3 = None
+    Z3 = forward_propagation(X, parameters)
     ### END CODE HERE ###
     
     # Cost function: Add cost function to tensorflow graph
     ### START CODE HERE ### (1 line)
-    cost = None
+    cost = compute_cost(Z3, Y)
     ### END CODE HERE ###
     
     # Backpropagation: Define the tensorflow optimizer. Use an AdamOptimizer.
     ### START CODE HERE ### (1 line)
-    optimizer = None
+    optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cost)
     ### END CODE HERE ###
     
     # Initialize all the variables
@@ -960,7 +960,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
                 # IMPORTANT: The line that runs the graph on a minibatch.
                 # Run the session to execute the "optimizer" and the "cost", the feedict should contain a minibatch for (X,Y).
                 ### START CODE HERE ### (1 line)
-                _ , minibatch_cost = None
+                _ , minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
                 ### END CODE HERE ###
                 
                 epoch_cost += minibatch_cost / num_minibatches
@@ -996,7 +996,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
 
 # Run the following cell to train your model! On our machine it takes about 5 minutes. Your "Cost after epoch 100" should be 1.016458. If it's not, don't waste time; interrupt the training by clicking on the square (⬛) in the upper bar of the notebook, and try to correct your code. If it is the correct cost, take a break and come back in 5 minutes!
 
-# In[ ]:
+# In[86]:
 
 parameters = model(X_train, Y_train, X_test, Y_test)
 
@@ -1037,7 +1037,7 @@ parameters = model(X_train, Y_train, X_test, Y_test)
 #     3. Write your image's name in the following code
 #     4. Run the code and check if the algorithm is right!
 
-# In[ ]:
+# In[87]:
 
 import scipy
 from PIL import Image
