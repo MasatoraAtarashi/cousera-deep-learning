@@ -34,7 +34,7 @@
 # * In this exercise, you'll work on the "Emotion detection" model, which we'll explain below. 
 # * Let's load the required packages.
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 from keras import layers
@@ -75,7 +75,7 @@ get_ipython().magic('matplotlib inline')
 # 
 # Run the following code to normalize the dataset and learn about its shapes.
 
-# In[ ]:
+# In[2]:
 
 X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
 
@@ -178,7 +178,7 @@ print ("Y_test shape: " + str(Y_test.shape))
 # 
 # **Note**: Be careful with your data's shapes. Use what you've learned in the videos to make sure your convolutional, pooling and fully-connected layers are adapted to the volumes you're applying it to.
 
-# In[ ]:
+# In[10]:
 
 # GRADED FUNCTION: HappyModel
 
@@ -193,11 +193,6 @@ def HappyModel(input_shape):
         If you have a batch like 'X_train', 
         then you can provide the input_shape using
         X_train.shape[1:]
-    """
-
-    Returns:
-    model -- a Model() instance in Keras
-    """
     
     ### START CODE HERE ###
     # Feel free to use the suggested outline in the text above to get started, and run through the whole
@@ -206,7 +201,24 @@ def HappyModel(input_shape):
     
     
     ### END CODE HERE ###
+    """
     
+    X_input = Input(input_shape)
+    X = ZeroPadding2D((3,3))(X_input)
+    X = Activation("relu")(X)
+    X = Conv2D(32, (7, 7), strides = (1, 1), name = 'conv0')(X)
+    X = BatchNormalization(axis = 3, name = 'bn0')(X)
+    X = Activation('relu')(X)
+
+    # MAXPOOL
+    X = MaxPooling2D((2, 2), name='max_pool')(X)
+
+    # FLATTEN X (means convert it to a vector) + FULLYCONNECTED
+    X = Flatten()(X)
+    X = Dense(1, activation='sigmoid', name='fc')(X)
+
+    # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
+    model = Model(inputs = X_input, outputs = X, name='HappyModel')
     return model
 
 
@@ -226,10 +238,10 @@ def HappyModel(input_shape):
 # The `input_shape` parameter is a tuple (height, width, channels).  It excludes the batch number.  
 # Try `X_train.shape[1:]` as the `input_shape`.
 
-# In[ ]:
+# In[11]:
 
 ### START CODE HERE ### (1 line)
-happyModel = None
+happyModel = HappyModel(X_train.shape[1:])
 ### END CODE HERE ###
 
 
@@ -239,10 +251,10 @@ happyModel = None
 # Optimizers you can try include `'adam'`, `'sgd'` or others.  See the documentation for [optimizers](https://keras.io/optimizers/)  
 # The "happiness detection" is a binary classification problem.  The loss function that you can use is `'binary_cross_entropy'`.  Note that `'categorical_cross_entropy'` won't work with your data set as its formatted, because the data is an array of 0 or 1 rather than two arrays (one for each category).  Documentation for [losses](https://keras.io/losses/)
 
-# In[ ]:
+# In[19]:
 
 ### START CODE HERE ### (1 line)
-None
+happyModel.compile(optimizer = "adam", loss="binary_crossentropy", metrics = ["accuracy"])
 ### END CODE HERE ###
 
 
@@ -253,10 +265,10 @@ None
 # 
 # **Note**: If you run `fit()` again, the `model` will continue to train with the parameters it has already learned instead of reinitializing them.
 
-# In[ ]:
+# In[23]:
 
 ### START CODE HERE ### (1 line)
-None
+happyModel.fit(x = X_train, y = Y_train, epochs=40, batch_size = 16)
 ### END CODE HERE ###
 
 
@@ -264,12 +276,12 @@ None
 # **Hint**:  
 # Use the `'X_test'` and `'Y_test'` variables to evaluate the model's performance.
 
-# In[ ]:
+# In[24]:
 
 ### START CODE HERE ### (1 line)
-preds = None
+preds = happyModel.evaluate(X_test, Y_test)
 ### END CODE HERE ###
-print()
+print(preds)
 print ("Loss = " + str(preds[0]))
 print ("Test Accuracy = " + str(preds[1]))
 
@@ -324,7 +336,7 @@ print ("Test Accuracy = " + str(preds[1]))
 #     
 # The training/test sets were quite similar; for example, all the pictures were taken against the same background (since a front door camera is always mounted in the same position). This makes the problem easier, but a model trained on this data may or may not work on your own data. But feel free to give it a try! 
 
-# In[ ]:
+# In[25]:
 
 ### START CODE HERE ###
 img_path = 'images/my_image.jpg'
@@ -347,13 +359,18 @@ print(happyModel.predict(x))
 # 
 # Run the following code.
 
-# In[ ]:
+# In[26]:
 
 happyModel.summary()
 
 
-# In[ ]:
+# In[27]:
 
 plot_model(happyModel, to_file='HappyModel.png')
 SVG(model_to_dot(happyModel).create(prog='dot', format='svg'))
+
+
+# In[ ]:
+
+
 
