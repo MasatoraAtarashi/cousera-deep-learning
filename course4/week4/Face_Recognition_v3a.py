@@ -40,7 +40,7 @@
 # #### Load packages
 # Let's load the required packages. 
 
-# In[ ]:
+# In[1]:
 
 from keras.models import Sequential
 from keras.layers import Conv2D, ZeroPadding2D, Activation, Input, concatenate
@@ -93,12 +93,12 @@ np.set_printoptions(threshold=np.nan)
 # 
 # Run the cell below to create the model for face images.
 
-# In[ ]:
+# In[2]:
 
 FRmodel = faceRecoModel(input_shape=(3, 96, 96))
 
 
-# In[ ]:
+# In[3]:
 
 print("Total Params:", FRmodel.count_params())
 
@@ -184,7 +184,7 @@ print("Total Params:", FRmodel.count_params())
 # * In step 4, when summing over training examples, the result will be a single scalar value.
 # * For `tf.reduce_sum` to sum across all axes, keep the default value `axis=None`.
 
-# In[ ]:
+# In[26]:
 
 # GRADED FUNCTION: triplet_loss
 
@@ -207,19 +207,19 @@ def triplet_loss(y_true, y_pred, alpha = 0.2):
     
     ### START CODE HERE ### (≈ 4 lines)
     # Step 1: Compute the (encoding) distance between the anchor and the positive
-    pos_dist = None
+    pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), axis=-1)
     # Step 2: Compute the (encoding) distance between the anchor and the negative
-    neg_dist = None
+    neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), axis=-1)
     # Step 3: subtract the two previous distances and add alpha.
-    basic_loss = None
+    basic_loss = tf.maximum(tf.add(tf.subtract(pos_dist,neg_dist), alpha), 0)
     # Step 4: Take the maximum of basic_loss and 0.0. Sum over the training examples.
-    loss = None
+    loss = tf.reduce_sum(basic_loss, axis=None)
     ### END CODE HERE ###
     
     return loss
 
 
-# In[ ]:
+# In[27]:
 
 with tf.Session() as test:
     tf.set_random_seed(1)
@@ -250,7 +250,7 @@ with tf.Session() as test:
 # 
 # FaceNet is trained by minimizing the triplet loss. But since training requires a lot of data and a lot of computation, we won't train it from scratch here. Instead, we load a previously trained model. Load a model using the following cell; this might take a couple of minutes to run. 
 
-# In[ ]:
+# In[28]:
 
 FRmodel.compile(optimizer = 'adam', loss = triplet_loss, metrics = ['accuracy'])
 load_weights_from_FaceNet(FRmodel)
@@ -276,7 +276,7 @@ load_weights_from_FaceNet(FRmodel)
 # 
 # Run the following code to build the database (represented as a python dictionary). This database maps each person's name to a 128-dimensional encoding of their face.
 
-# In[ ]:
+# In[29]:
 
 database = {}
 database["danielle"] = img_to_encoding("images/danielle.png", FRmodel)
@@ -308,7 +308,7 @@ database["arnaud"] = img_to_encoding("images/arnaud.jpg", FRmodel)
 # * `identity` is a string that is also a key in the `database` dictionary.
 # * `img_to_encoding` has two parameters: the `image_path` and `model`.
 
-# In[ ]:
+# In[45]:
 
 # GRADED FUNCTION: verify
 
@@ -330,18 +330,17 @@ def verify(image_path, identity, database, model):
     ### START CODE HERE ###
     
     # Step 1: Compute the encoding for the image. Use img_to_encoding() see example above. (≈ 1 line)
-    encoding = None
+    encoding = img_to_encoding(image_path, model)
     
     # Step 2: Compute distance with identity's image (≈ 1 line)
-    dist = None
-    
+    dist = np.linalg.norm(encoding - database[identity])
     # Step 3: Open the door if dist < 0.7, else don't open (≈ 3 lines)
-    if None:
+    if dist < 0.7:
         print("It's " + str(identity) + ", welcome in!")
-        door_open = None
+        door_open = True
     else:
         print("It's not " + str(identity) + ", please go away")
-        door_open = None
+        door_open = False
         
     ### END CODE HERE ###
         
@@ -352,7 +351,7 @@ def verify(image_path, identity, database, model):
 # 
 # <img src="images/camera_0.jpg" style="width:100px;height:100px;">
 
-# In[ ]:
+# In[46]:
 
 verify("images/camera_0.jpg", "younes", database, FRmodel)
 
@@ -374,7 +373,7 @@ verify("images/camera_0.jpg", "younes", database, FRmodel)
 # Benoit, who does not work in the office, stole Kian's ID card and tried to enter the office. The camera took a picture of Benoit ("images/camera_2.jpg). Let's run the verification algorithm to check if benoit can enter.
 # <img src="images/camera_2.jpg" style="width:100px;height:100px;">
 
-# In[ ]:
+# In[47]:
 
 verify("images/camera_2.jpg", "kian", database, FRmodel)
 
@@ -409,7 +408,7 @@ verify("images/camera_2.jpg", "kian", database, FRmodel)
 #         - Compute the L2 distance between the target "encoding" and the current "encoding" from the database.
 #         - If this distance is less than the min_dist, then set `min_dist` to `dist`, and `identity` to `name`.
 
-# In[ ]:
+# In[50]:
 
 # GRADED FUNCTION: who_is_it
 
@@ -430,23 +429,23 @@ def who_is_it(image_path, database, model):
     ### START CODE HERE ### 
     
     ## Step 1: Compute the target "encoding" for the image. Use img_to_encoding() see example above. ## (≈ 1 line)
-    encoding = None
+    encoding = img_to_encoding(image_path, model)
     
     ## Step 2: Find the closest encoding ##
     
     # Initialize "min_dist" to a large value, say 100 (≈1 line)
-    min_dist = None
+    min_dist = 100
     
     # Loop over the database dictionary's names and encodings.
-    for (name, db_enc) in None:
+    for (name, db_enc) in database.items():
         
         # Compute L2 distance between the target "encoding" and the current db_enc from the database. (≈ 1 line)
-        dist = None
+        dist = np.linalg.norm(encoding - db_enc)
 
         # If this distance is less than the min_dist, then set min_dist to dist, and identity to name. (≈ 3 lines)
-        if None:
-            min_dist = None
-            identity = None
+        if dist < min_dist:
+            min_dist = dist
+            identity = name
 
     ### END CODE HERE ###
     
@@ -460,9 +459,9 @@ def who_is_it(image_path, database, model):
 
 # Younes is at the front-door and the camera takes a picture of him ("images/camera_0.jpg"). Let's see if your who_it_is() algorithm identifies Younes. 
 
-# In[ ]:
+# In[52]:
 
-who_is_it("images/camera_0.jpg", database, FRmodel)
+who_is_it("images/camera_1.jpg", database, FRmodel)
 
 
 # **Expected Output**:
