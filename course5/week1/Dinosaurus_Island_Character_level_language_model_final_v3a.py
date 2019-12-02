@@ -578,7 +578,7 @@ def optimize(X, Y, a_prev, parameters, learning_rate = 0.01):
     gradients, a = rnn_backward(X, Y, parameters, cache)
     
     # Clip your gradients between -5 (min) and 5 (max) (≈1 line)
-    gradients = clip(gradients, maxValue)
+    gradients = clip(gradients, 5)
     
     # Update parameters (≈1 line)
     parameters = update_parameters(parameters, gradients, learning_rate)
@@ -853,23 +853,3 @@ generate_output()
 # **References**:
 # - This exercise took inspiration from Andrej Karpathy's implementation: https://gist.github.com/karpathy/d4dee566867f8291f086. To learn more about text generation, also check out Karpathy's [blog post](http://karpathy.github.io/2015/05/21/rnn-effectiveness/).
 # - For the Shakespearian poem generator, our implementation was based on the implementation of an LSTM text generator by the Keras team: https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py 
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
