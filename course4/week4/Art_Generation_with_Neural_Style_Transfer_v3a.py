@@ -419,11 +419,11 @@ with tf.Session() as test:
 # In[11]:
 
 STYLE_LAYERS = [
-    ('conv1_1', 0.2),
-    ('conv2_1', 0.2),
-    ('conv3_1', 0.2),
-    ('conv4_1', 0.2),
-    ('conv5_1', 0.2)]
+    ('conv1_1', 0.4),
+    ('conv2_1', 0.3),
+    ('conv3_1', 0.15),
+    ('conv4_1', 0.1),
+    ('conv5_1', 0.05)]
 
 
 # You can combine the style costs for different layers as follows:
@@ -615,7 +615,7 @@ sess = tf.InteractiveSession()
 
 # In[16]:
 
-content_image = scipy.misc.imread("images/basukia.jpg")
+content_image = scipy.misc.imread("images/face.jpg")
 content_image = reshape_and_normalize_image(content_image)
 
 
@@ -624,7 +624,7 @@ content_image = reshape_and_normalize_image(content_image)
 
 # In[17]:
 
-style_image = scipy.misc.imread("images/face.jpeg")
+style_image = scipy.misc.imread("images/basukia.jpeg")
 style_image = reshape_and_normalize_image(style_image)
 
 
@@ -711,7 +711,7 @@ J = total_cost(J_content, J_style, alpha = 10, beta = 40)
 # In[23]:
 
 # define optimizer (1 line)
-optimizer = tf.train.AdamOptimizer(2.0)
+optimizer = tf.train.AdamOptimizer(0.3)
 
 # define train_step (1 line)
 train_step = optimizer.minimize(J)
@@ -771,10 +771,10 @@ def model_nn(sess, input_image, num_iterations = 200):
             print("style cost = " + str(Js))
             
             # save current generated image in the "/output" directory
-            save_image("output/" + str(i) + ".png", generated_image)
+            save_image("original_output2/" + str(i) + ".png", generated_image)
     
     # save last generated image
-    save_image('output/generated_image.jpg', generated_image)
+    save_image('original_output2/generated_image.jpg', generated_image)
     
     return generated_image
 
