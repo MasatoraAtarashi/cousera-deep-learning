@@ -48,7 +48,7 @@
 #     - Replaced the sample code with explanations for how to set the index, X and Y (for a better learning experience).
 # * Spelling, grammar and wording corrections.
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 from utils import *
@@ -62,7 +62,7 @@ import pprint
 # 
 # Run the following cell to read the dataset of dinosaur names, create a list of unique characters (such as a-z), and compute the dataset and vocabulary size. 
 
-# In[ ]:
+# In[2]:
 
 data = open('dinos.txt', 'r').read()
 data= data.lower()
@@ -79,13 +79,13 @@ print('There are %d total characters and %d unique characters in your data.' % (
 # * `ix_to_char`: We also create a second python dictionary that maps each index back to the corresponding character. 
 #     -  This will help you figure out what index corresponds to what character in the probability distribution output of the softmax layer. 
 
-# In[ ]:
+# In[3]:
 
 chars = sorted(chars)
 print(chars)
 
 
-# In[ ]:
+# In[4]:
 
 char_to_ix = { ch:i for i,ch in enumerate(chars) }
 ix_to_char = { i:ch for i,ch in enumerate(chars) }
@@ -158,7 +158,7 @@ pp.pprint(ix_to_char)
 #     - Using the "`out`" parameter allows you to update a variable "in-place".
 #     - If you don't use "`out`" argument, the clipped variable is stored in the variable "gradient" but does not update the gradient variables `dWax`, `dWaa`, `dWya`, `db`, `dby`.
 
-# In[ ]:
+# In[5]:
 
 ### GRADED FUNCTION: clip
 
@@ -178,8 +178,8 @@ def clip(gradients, maxValue):
    
     ### START CODE HERE ###
     # clip to mitigate exploding gradients, loop over [dWax, dWaa, dWya, db, dby]. (≈2 lines)
-    for gradient in [None]:
-        None
+    for gradient in [dWaa, dWax, dWya, db, dby]:
+        np.clip(gradient, -maxValue, maxValue, out=gradient)
     ### END CODE HERE ###
     
     gradients = {"dWaa": dWaa, "dWax": dWax, "dWya": dWya, "db": db, "dby": dby}
@@ -187,7 +187,7 @@ def clip(gradients, maxValue):
     return gradients
 
 
-# In[ ]:
+# In[6]:
 
 # Test with a maxvalue of 10
 maxValue = 10
@@ -218,7 +218,7 @@ print("gradients[\"dby\"][1] =", gradients["dby"][1])
 # gradients["dby"][1] = [ 8.45833407]
 # ```
 
-# In[ ]:
+# In[7]:
 
 # Test with a maxValue of 5
 maxValue = 5
@@ -289,12 +289,12 @@ print("gradients[\"dby\"][1] =", gradients["dby"][1])
 # * When two arrays with  a different number of dimensions are added together, Python "broadcasts" one across the other.
 # * Here is some sample code that shows the difference between using a 1D and 2D array.
 
-# In[ ]:
+# In[8]:
 
 import numpy as np
 
 
-# In[ ]:
+# In[9]:
 
 matrix1 = np.array([[1,1],[2,2],[3,3]]) # (3,2)
 matrix2 = np.array([[0],[0],[0]]) # (3,1) 
@@ -306,7 +306,7 @@ print("vector1D \n", vector1D,"\n")
 print("vector2D \n", vector2D)
 
 
-# In[ ]:
+# In[10]:
 
 print("Multiply 2D and 1D arrays: result is a 1D array\n", 
       np.dot(matrix1,vector1D))
@@ -314,14 +314,14 @@ print("Multiply 2D and 2D arrays: result is a 2D array\n",
       np.dot(matrix1,vector2D))
 
 
-# In[ ]:
+# In[11]:
 
 print("Adding (3 x 1) vector to a (3 x 1) vector is a (3 x 1) vector\n",
       "This is what we want here!\n", 
       np.dot(matrix1,vector2D) + matrix2)
 
 
-# In[ ]:
+# In[12]:
 
 print("Adding a (3,) vector to a (3 x 1) vector\n",
       "broadcasts the 1D array across the second dimension\n",
@@ -386,7 +386,7 @@ print("Adding a (3,) vector to a (3 x 1) vector\n",
 #     - You can either create a new numpy array: [numpy.zeros](https://docs.scipy.org/doc/numpy/reference/generated/numpy.zeros.html)
 #     - Or fill all values with a single number: [numpy.ndarray.fill](https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.fill.html)
 
-# In[ ]:
+# In[13]:
 
 # GRADED FUNCTION: sample
 
@@ -411,9 +411,9 @@ def sample(parameters, char_to_ix, seed):
     ### START CODE HERE ###
     # Step 1: Create the a zero vector x that can be used as the one-hot vector 
     # representing the first character (initializing the sequence generation). (≈1 line)
-    x = None
+    x = np.zeros([vocab_size, 1])
     # Step 1': Initialize a_prev as zeros (≈1 line)
-    a_prev = None
+    a_prev = np.zeros([n_a, 1])
     
     # Create an empty list of indices, this is the list which will contain the list of indices of the characters to generate (≈1 line)
     indices = []
@@ -435,27 +435,27 @@ def sample(parameters, char_to_ix, seed):
     while (idx != newline_character and counter != 50):
         
         # Step 2: Forward propagate x using the equations (1), (2) and (3)
-        a = None
-        z = None
-        y = None
+        a = np.tanh(np.dot(Wax, x) + np.dot(Waa, a_prev) + b)
+        z = np.dot(Wya, a) + by
+        y = softmax(z)
         
         # for grading purposes
         np.random.seed(counter+seed) 
         
         # Step 3: Sample the index of a character within the vocabulary from the probability distribution y
         # (see additional hints above)
-        idx = None
+        idx = np.random.choice(range(len(y)), p = y.ravel())
 
         # Append the index to "indices"
-        None
+        indices.append(idx)
         
         # Step 4: Overwrite the input x with one that corresponds to the sampled index `idx`.
         # (see additional hints above)
-        x = None
-        x[None] = None
+        x = np.zeros([vocab_size, 1])
+        x[idx] = 1
         
         # Update "a_prev" to be "a"
-        a_prev = None
+        a_prev = a
         
         # for grading purposes
         seed += 1
@@ -469,7 +469,7 @@ def sample(parameters, char_to_ix, seed):
     return indices
 
 
-# In[ ]:
+# In[14]:
 
 np.random.seed(2)
 _, n_a = 20, 100
@@ -483,19 +483,6 @@ print("Sampling:")
 print("list of sampled indices:\n", indices)
 print("list of sampled characters:\n", [ix_to_char[i] for i in indices])
 
-
-# ** Expected output:**
-# 
-# ```Python
-# Sampling:
-# list of sampled indices:
-#  [12, 17, 24, 14, 13, 9, 10, 22, 24, 6, 13, 11, 12, 6, 21, 15, 21, 14, 3, 2, 1, 21, 18, 24, 7, 25, 6, 25, 18, 10, 16, 2, 3, 8, 15, 12, 11, 7, 1, 12, 10, 2, 7, 7, 11, 17, 24, 12, 13, 24, 0]
-# list of sampled characters:
-#  ['l', 'q', 'x', 'n', 'm', 'i', 'j', 'v', 'x', 'f', 'm', 'k', 'l', 'f', 'u', 'o', 'u', 'n', 'c', 'b', 'a', 'u', 'r', 'x', 'g', 'y', 'f', 'y', 'r', 'j', 'p', 'b', 'c', 'h', 'o', 'l', 'k', 'g', 'a', 'l', 'j', 'b', 'g', 'g', 'k', 'q', 'x', 'l', 'm', 'x', '\n']
-# ```
-# 
-# * Please note that over time, if there are updates to the back-end of the Coursera platform (that may update the version of numpy), the actual list of sampled indices and sampled characters may change. 
-# * If you follow the instructions given above and get an output without errors, it's possible the routine is correct even if your output doesn't match the expected output.  Submit your assignment to the grader to verify its correctness.
 
 # ## 3 - Building the language model 
 # 
@@ -551,7 +538,7 @@ print("list of sampled characters:\n", [ix_to_char[i] for i in indices])
 # * Note that the weights and biases inside the `parameters` dictionary are being updated by the optimization, even though `parameters` is not one of the returned values of the `optimize` function. The `parameters` dictionary is passed by reference into the function, so changes to this dictionary are making changes to the `parameters` dictionary even when accessed outside of the function.
 # * Python dictionaries and lists are "pass by reference", which means that if you pass a dictionary into a function and modify the dictionary within the function, this changes that same dictionary (it's not a copy of the dictionary).
 
-# In[ ]:
+# In[15]:
 
 # GRADED FUNCTION: optimize
 
@@ -585,23 +572,23 @@ def optimize(X, Y, a_prev, parameters, learning_rate = 0.01):
     ### START CODE HERE ###
     
     # Forward propagate through time (≈1 line)
-    loss, cache = None
+    loss, cache = rnn_forward(X, Y, a_prev, parameters)
     
     # Backpropagate through time (≈1 line)
-    gradients, a = None
+    gradients, a = rnn_backward(X, Y, parameters, cache)
     
     # Clip your gradients between -5 (min) and 5 (max) (≈1 line)
-    gradients = None
+    gradients = clip(gradients, maxValue)
     
     # Update parameters (≈1 line)
-    parameters = None
+    parameters = update_parameters(parameters, gradients, learning_rate)
     
     ### END CODE HERE ###
     
     return loss, gradients, a[len(X)-1]
 
 
-# In[ ]:
+# In[16]:
 
 np.random.seed(1)
 vocab_size, n_a = 27, 100
@@ -688,7 +675,7 @@ print("a_last[4] =", a_last[4])
 #     - Note that `append` is an in-place operation.
 #     - It might be easier for you to add two lists together.
 
-# In[ ]:
+# In[17]:
 
 # GRADED FUNCTION: model
 
@@ -736,21 +723,21 @@ def model(data, ix_to_char, char_to_ix, num_iterations = 35000, n_a = 50, dino_n
         ### START CODE HERE ###
         
         # Set the index `idx` (see instructions above)
-        idx = None
+        idx = j % len(examples)
         
         # Set the input X (see instructions above)
-        single_example = None
-        single_example_chars = None
-        single_example_ix = None
-        X = None
+        single_example = examples[idx]
+        single_example_chars = [c for c in single_example]
+        single_example_ix = [char_to_ix[c] for c in single_example]
+        X =  [None] + single_example_ix
         
         # Set the labels Y (see instructions above)
-        ix_newline = None
-        Y = None
+        ix_newline = char_to_ix["\n"]
+        Y = X[1:] + [ix_newline]
         
         # Perform one optimization step: Forward-prop -> Backward-prop -> Clip -> Update parameters
         # Choose a learning rate of 0.01
-        curr_loss, gradients, a_prev = None
+        curr_loss, gradients, a_prev = optimize(X, Y, a_prev, parameters, learning_rate = 0.01)
         
         ### END CODE HERE ###
         
@@ -779,7 +766,7 @@ def model(data, ix_to_char, char_to_ix, num_iterations = 35000, n_a = 50, dino_n
 
 # Run the following cell, you should observe your model outputting random-looking characters at the first iteration. After a few thousand iterations, your model should learn to generate reasonable-looking names. 
 
-# In[ ]:
+# In[18]:
 
 parameters = model(data, ix_to_char, char_to_ix)
 
@@ -866,6 +853,21 @@ generate_output()
 # **References**:
 # - This exercise took inspiration from Andrej Karpathy's implementation: https://gist.github.com/karpathy/d4dee566867f8291f086. To learn more about text generation, also check out Karpathy's [blog post](http://karpathy.github.io/2015/05/21/rnn-effectiveness/).
 # - For the Shakespearian poem generator, our implementation was based on the implementation of an LSTM text generator by the Keras team: https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py 
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
 
 # In[ ]:
 
