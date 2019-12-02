@@ -81,7 +81,7 @@
 
 # Let's first import all the packages that you will need during this assignment.
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 from rnn_utils import *
@@ -178,7 +178,7 @@ from rnn_utils import *
 # 
 # 
 
-# In[ ]:
+# In[2]:
 
 # GRADED FUNCTION: rnn_cell_forward
 
@@ -210,9 +210,9 @@ def rnn_cell_forward(xt, a_prev, parameters):
     
     ### START CODE HERE ### (≈2 lines)
     # compute next activation state using the formula given above
-    a_next = None
+    a_next = np.tanh(np.dot(Waa,a_prev) + np.dot(Wax,xt) + ba)
     # compute output of the current cell using the formula given above
-    yt_pred = None   
+    yt_pred = softmax(np.dot(Wya,a_next) + by)   
     ### END CODE HERE ###
     
     # store values you need for backward propagation in cache
@@ -221,7 +221,7 @@ def rnn_cell_forward(xt, a_prev, parameters):
     return a_next, yt_pred, cache
 
 
-# In[ ]:
+# In[3]:
 
 np.random.seed(1)
 xt_tmp = np.random.randn(3,10)
@@ -298,7 +298,7 @@ print("yt_pred.shape = \n", yt_pred_tmp.shape)
 # - [np.zeros](https://docs.scipy.org/doc/numpy/reference/generated/numpy.zeros.html)
 # - If you have a 3 dimensional numpy array and are indexing by its third dimension, you can use array slicing like this: `var_name[:,:,i]`.
 
-# In[ ]:
+# In[4]:
 
 # GRADED FUNCTION: rnn_forward
 
@@ -332,23 +332,23 @@ def rnn_forward(x, a0, parameters):
     ### START CODE HERE ###
     
     # initialize "a" and "y_pred" with zeros (≈2 lines)
-    a = None
-    y_pred = None
+    a = np.zeros((n_a,m,T_x))
+    y_pred = np.zeros((n_y,m,T_x))
     
     # Initialize a_next (≈1 line)
-    a_next = None
+    a_next = a0
     
     # loop over all time-steps of the input 'x' (1 line)
-    for t in range(None):
+    for t in range(T_x):
         # Update next hidden state, compute the prediction, get the cache (≈2 lines)
-        xt = None
-        a_next, yt_pred, cache = None
+        xt = x[:,:,t]
+        a_next, yt_pred, cache = rnn_cell_forward(xt, a_next, parameters)
         # Save the value of the new "next" hidden state in a (≈1 line)
-        a[:,:,t] = None
+        a[:,:,t] = a_next
         # Save the value of the prediction in y (≈1 line)
-        y_pred[:,:,t] = None
+        y_pred[:,:,t] = yt_pred
         # Append "cache" to "caches" (≈1 line)
-        None
+        caches.append(cache)
         
     ### END CODE HERE ###
     
@@ -358,7 +358,7 @@ def rnn_forward(x, a0, parameters):
     return a, y_pred, caches
 
 
-# In[ ]:
+# In[5]:
 
 np.random.seed(1)
 x_tmp = np.random.randn(3,10,4)
@@ -575,7 +575,7 @@ print("len(caches) = \n", len(caches_tmp))
 # * Use [np.dot](https://docs.scipy.org/doc/numpy/reference/generated/numpy.dot.html) for matrix multiplication.
 # * Notice that the variable names `Wi`, `bi` refer to the weights and biases of the **update** gate.  There are no variables named "Wu" or "bu" in this function.
 
-# In[ ]:
+# In[21]:
 
 # GRADED FUNCTION: lstm_cell_forward
 
@@ -627,20 +627,20 @@ def lstm_cell_forward(xt, a_prev, c_prev, parameters):
 
     ### START CODE HERE ###
     # Concatenate a_prev and xt (≈1 line)
-    concat = None
+    concat = np.concatenate((a_prev, xt), axis=0)
 
     # Compute values for ft (forget gate), it (update gate),
     # cct (candidate value), c_next (cell state), 
     # ot (output gate), a_next (hidden state) (≈6 lines)
-    ft = None        # forget gate
-    it = None        # update gate
-    cct = None       # candidate value
-    c_next = None    # cell state
-    ot = None        # output gate
-    a_next = None    # hidden state
+    ft = sigmoid(np.dot(Wf,concat) + bf)        # forget gate
+    it = sigmoid(np.dot(Wi,concat) + bi)        # update gate
+    cct = np.tanh(np.dot(Wc,concat) + bc)       # candidate value
+    c_next = ft * c_prev + it * cct   # cell state
+    ot = sigmoid(np.dot(Wo,concat) + bo)        # output gate
+    a_next = ot * np.tanh(c_next)  # hidden state
     
     # Compute prediction of the LSTM cell (≈1 line)
-    yt_pred = None
+    yt_pred = softmax(np.dot(Wy, a_next) + by)
     ### END CODE HERE ###
 
     # store values needed for backward propagation in cache
@@ -649,7 +649,7 @@ def lstm_cell_forward(xt, a_prev, c_prev, parameters):
     return a_next, c_next, yt_pred, cache
 
 
-# In[ ]:
+# In[22]:
 
 np.random.seed(1)
 xt_tmp = np.random.randn(3,10)
@@ -729,7 +729,7 @@ print("len(cache) = ", len(cache_tmp))
 #     - Store the hidden state, cell state and prediction (the 2D tensors) inside the 3D tensors.
 #     - Also append the cache to the list of caches.
 
-# In[ ]:
+# In[27]:
 
 # GRADED FUNCTION: lstm_forward
 
@@ -765,32 +765,32 @@ def lstm_forward(x, a0, parameters):
     ### START CODE HERE ###
     Wy = parameters['Wy'] # saving parameters['Wy'] in a local variable in case students use Wy instead of parameters['Wy']
     # Retrieve dimensions from shapes of x and parameters['Wy'] (≈2 lines)
-    n_x, m, T_x = None
-    n_y, n_a = None
+    n_x, m, T_x = x.shape
+    n_y, n_a = parameters["Wy"].shape
     
     # initialize "a", "c" and "y" with zeros (≈3 lines)
-    a = None
-    c = None
-    y = None
+    a = np.zeros((n_a, m, T_x))
+    c = np.zeros((n_a, m, T_x))
+    y = np.zeros((n_y, m, T_x))
     
     # Initialize a_next and c_next (≈2 lines)
-    a_next = None
-    c_next = None
+    a_next = a0
+    c_next = np.zeros((n_a, m))
     
     # loop over all time-steps
-    for t in range(None):
+    for t in range(T_x):
         # Get the 2D slice 'xt' from the 3D input 'x' at time step 't'
-        xt = None
+        xt = x[:,:,t]
         # Update next hidden state, next memory state, compute the prediction, get the cache (≈1 line)
-        a_next, c_next, yt, cache = None
+        a_next, c_next, yt, cache = lstm_cell_forward(xt, a_next, c_next, parameters)
         # Save the value of the new "next" hidden state in a (≈1 line)
-        a[:,:,t] = None
+        a[:,:,t] = a_next
         # Save the value of the next cell state (≈1 line)
-        c[:,:,t]  = None
+        c[:,:,t]  = c_next
         # Save the value of the prediction in y (≈1 line)
-        y[:,:,t] = None
+        y[:,:,t] = yt
         # Append the cache into caches (≈1 line)
-        None
+        caches.append(cache)
         
     ### END CODE HERE ###
     
@@ -800,7 +800,7 @@ def lstm_forward(x, a0, parameters):
     return a, y, c, caches
 
 
-# In[ ]:
+# In[28]:
 
 np.random.seed(1)
 x_tmp = np.random.randn(3,10,7)
@@ -920,7 +920,7 @@ def rnn_cell_backward(da_next, cache):
     return gradients
 
 
-# In[ ]:
+# In[8]:
 
 np.random.seed(1)
 xt_tmp = np.random.randn(3,10)
