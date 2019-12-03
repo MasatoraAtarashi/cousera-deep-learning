@@ -34,7 +34,7 @@
 
 # Let's get started! Run the following cell to load the package you are going to use.    
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 from pydub import AudioSegment
@@ -66,17 +66,17 @@ get_ipython().magic('matplotlib inline')
 # 
 # Run the cells below to listen to some examples.
 
-# In[ ]:
+# In[2]:
 
 IPython.display.Audio("./raw_data/activates/1.wav")
 
 
-# In[ ]:
+# In[3]:
 
 IPython.display.Audio("./raw_data/negatives/4.wav")
 
 
-# In[ ]:
+# In[4]:
 
 IPython.display.Audio("./raw_data/backgrounds/1.wav")
 
@@ -102,12 +102,12 @@ IPython.display.Audio("./raw_data/backgrounds/1.wav")
 # 
 # Let's look at an example. 
 
-# In[ ]:
+# In[5]:
 
 IPython.display.Audio("audio_examples/example_train.wav")
 
 
-# In[ ]:
+# In[6]:
 
 x = graph_spectrogram("audio_examples/example_train.wav")
 
@@ -126,7 +126,7 @@ x = graph_spectrogram("audio_examples/example_train.wav")
 #     * The number of timesteps of the spectrogram will be 5511. 
 #     * You'll see later that the spectrogram will be the input $x$ into the network, and so $T_x = 5511$.
 
-# In[ ]:
+# In[7]:
 
 _, data = wavfile.read("audio_examples/example_train.wav")
 print("Time steps in audio recording before spectrogram", data[:,0].shape)
@@ -135,7 +135,7 @@ print("Time steps in input after spectrogram", x.shape)
 
 # Now, you can define:
 
-# In[ ]:
+# In[8]:
 
 Tx = 5511 # The number of time steps input to the model from the spectrogram
 n_freq = 101 # Number of frequencies input to the model at each time step of the spectrogram
@@ -153,7 +153,7 @@ n_freq = 101 # Number of frequencies input to the model at each time step of the
 # * All of these are hyperparameters and can be changed (except the 441000, which is a function of the microphone). 
 # * We have chosen values that are within the standard range used for speech systems.
 
-# In[ ]:
+# In[9]:
 
 Ty = 1375 # The number of time steps in the output of our model
 
@@ -180,7 +180,7 @@ Ty = 1375 # The number of time steps in the output of our model
 # * Pydub uses 1ms as the discretization interval (1ms is 1 millisecond = 1/1000 seconds).
 #     * This is why a 10 second clip is always represented using 10,000 steps. 
 
-# In[ ]:
+# In[10]:
 
 # Load audio segments using pydub 
 activates, negatives, backgrounds = load_raw_audio()
@@ -251,7 +251,7 @@ print("activate[1] len: different `activate` clips can have different lengths\n"
 # * The function `get_random_time_segment(segment_ms)` returns a random time segment onto which we can insert an audio clip of duration `segment_ms`. 
 # * Please read through the code to make sure you understand what it is doing. 
 
-# In[ ]:
+# In[59]:
 
 def get_random_time_segment(segment_ms):
     """
@@ -297,7 +297,7 @@ def get_random_time_segment(segment_ms):
 # * The new segment starts before the previous segment ends **and**
 # * The new segment ends after the previous segment starts.
 
-# In[ ]:
+# In[60]:
 
 # GRADED FUNCTION: is_overlapping
 
@@ -317,19 +317,19 @@ def is_overlapping(segment_time, previous_segments):
     
     ### START CODE HERE ### (≈ 4 lines)
     # Step 1: Initialize overlap as a "False" flag. (≈ 1 line)
-    overlap = None
+    overlap = False
     
     # Step 2: loop over the previous_segments start and end times.
     # Compare start/end times and set the flag to True if there is an overlap (≈ 3 lines)
     for previous_start, previous_end in previous_segments:
-        if None:
-            overlap = None
+        if segment_start <= previous_end and previous_start <= segment_start:
+            overlap = True
     ### END CODE HERE ###
 
     return overlap
 
 
-# In[ ]:
+# In[61]:
 
 overlap1 = is_overlapping((950, 1430), [(2000, 2550), (260, 949)])
 overlap2 = is_overlapping((2305, 2950), [(824, 1532), (1900, 2305), (3424, 3656)])
@@ -375,7 +375,7 @@ print("Overlap 2 = ", overlap2)
 #     * This keeps track of all the segments you've inserted.  
 # 4. Overlay the audio clip over the background using pydub. We have implemented this for you.
 
-# In[ ]:
+# In[62]:
 
 # GRADED FUNCTION: insert_audio_clip
 
@@ -399,15 +399,15 @@ def insert_audio_clip(background, audio_clip, previous_segments):
     ### START CODE HERE ### 
     # Step 1: Use one of the helper functions to pick a random time segment onto which to insert 
     # the new audio clip. (≈ 1 line)
-    segment_time = None
+    segment_time = get_random_time_segment(segment_ms)
     
     # Step 2: Check if the new segment_time overlaps with one of the previous_segments. If so, keep 
     # picking new segment_time at random until it doesn't overlap. (≈ 2 lines)
-    while None:
-        segment_time = None
+    while is_overlapping(segment_time, previous_segments):
+        segment_time = get_random_time_segment(segment_ms)
 
     # Step 3: Append the new segment_time to the list of previous_segments (≈ 1 line)
-    None
+    previous_segments.append(segment_time)
     ### END CODE HERE ###
     
     # Step 4: Superpose audio segment and background
@@ -416,7 +416,7 @@ def insert_audio_clip(background, audio_clip, previous_segments):
     return new_background, segment_time
 
 
-# In[ ]:
+# In[63]:
 
 np.random.seed(5)
 audio_clip, segment_time = insert_audio_clip(backgrounds[0], activates[0], [(3790, 4400)])
@@ -438,7 +438,7 @@ IPython.display.Audio("insert_test.wav")
 #     </tr>
 # </table>
 
-# In[ ]:
+# In[64]:
 
 # Expected audio
 IPython.display.Audio("audio_examples/insert_reference.wav")
@@ -463,7 +463,7 @@ IPython.display.Audio("audio_examples/insert_reference.wav")
 #     segment_end_y = int(segment_end_ms * Ty / 10000.0)
 # ```
 
-# In[ ]:
+# In[65]:
 
 # GRADED FUNCTION: insert_ones
 
@@ -487,15 +487,15 @@ def insert_ones(y, segment_end_ms):
     
     # Add 1 to the correct index in the background label (y)
     ### START CODE HERE ### (≈ 3 lines)
-    for i in range(None, None):
-        if None < None:
-            y[0, i] = None
+    for i in range(segment_end_y+1, segment_end_y + 51):
+        if i < len(y[0]):
+            y[0, i] = 1
     ### END CODE HERE ###
     
     return y
 
 
-# In[ ]:
+# In[66]:
 
 arr1 = insert_ones(np.zeros((1, Ty)), 9700)
 plt.plot(insert_ones(arr1, 4251)[0,:])
@@ -526,7 +526,7 @@ print("sanity checks:", arr1[0][1333], arr1[0][634], arr1[0][635])
 # 4. Randomly select 0 to 2 negative audio clips, and insert them into the 10 second clip. 
 # 
 
-# In[ ]:
+# In[69]:
 
 # GRADED FUNCTION: create_training_example
 
@@ -552,10 +552,10 @@ def create_training_example(background, activates, negatives):
 
     ### START CODE HERE ###
     # Step 1: Initialize y (label vector) of zeros (≈ 1 line)
-    y = None
+    y = np.zeros((1, Ty))
 
     # Step 2: Initialize segment times as an empty list (≈ 1 line)
-    previous_segments = None
+    previous_segments = []
     ### END CODE HERE ###
     
     # Select 0-4 random "activate" audio clips from the entire list of "activates" recordings
@@ -567,11 +567,11 @@ def create_training_example(background, activates, negatives):
     # Step 3: Loop over randomly selected "activate" clips and insert in background
     for random_activate in random_activates:
         # Insert the audio clip on the background
-        background, segment_time = None
+        background, segment_time = insert_audio_clip(background, random_activate, previous_segments)
         # Retrieve segment_start and segment_end from segment_time
-        segment_start, segment_end = None
+        segment_start, segment_end = segment_time
         # Insert labels in "y"
-        y = None
+        y = insert_ones(y, segment_end)
     ### END CODE HERE ###
 
     # Select 0-2 random negatives audio recordings from the entire list of "negatives" recordings
@@ -583,7 +583,7 @@ def create_training_example(background, activates, negatives):
     # Step 4: Loop over randomly selected negative clips and insert in background
     for random_negative in random_negatives:
         # Insert the audio clip on the background 
-        background, _ = None
+        background, _ = insert_audio_clip(background, random_negative, previous_segments)
     ### END CODE HERE ###
     
     # Standardize the volume of the audio clip 
@@ -599,7 +599,7 @@ def create_training_example(background, activates, negatives):
     return x, y
 
 
-# In[ ]:
+# In[70]:
 
 x, y = create_training_example(backgrounds[0], activates, negatives)
 
@@ -609,21 +609,21 @@ x, y = create_training_example(backgrounds[0], activates, negatives)
 
 # Now you can listen to the training example you created and compare it to the spectrogram generated above.
 
-# In[ ]:
+# In[71]:
 
 IPython.display.Audio("train.wav")
 
 
 # **Expected Output**
 
-# In[ ]:
+# In[72]:
 
 IPython.display.Audio("audio_examples/train_reference.wav")
 
 
 # Finally, you can plot the associated labels for the generated training example.
 
-# In[ ]:
+# In[73]:
 
 plt.plot(y[0])
 
@@ -637,7 +637,7 @@ plt.plot(y[0])
 # * We used this process to generate a large training set. 
 # * To save time, we've already generated a set of training examples. 
 
-# In[ ]:
+# In[74]:
 
 # Load preprocessed training examples
 X = np.load("./XY_train/X.npy")
@@ -653,7 +653,7 @@ Y = np.load("./XY_train/Y.npy")
 #     * This is why our **dev set uses real audio** rather than synthesized audio. 
 # 
 
-# In[ ]:
+# In[75]:
 
 # Load preprocessed dev set examples
 X_dev = np.load("./XY_dev/X_dev.npy")
@@ -666,7 +666,7 @@ Y_dev = np.load("./XY_dev/Y_dev.npy")
 # * The model will use 1-D convolutional layers, GRU layers, and dense layers. 
 # * Let's load the packages that will allow you to use these layers in Keras. This might take a minute to load. 
 
-# In[ ]:
+# In[76]:
 
 from keras.callbacks import ModelCheckpoint
 from keras.models import Model, load_model, Sequential
@@ -753,7 +753,7 @@ from keras.optimizers import Adam
 # 
 # **Exercise**: Implement `model()`, the architecture is presented in Figure 3.
 
-# In[ ]:
+# In[81]:
 
 # GRADED FUNCTION: model
 
@@ -773,24 +773,24 @@ def model(input_shape):
     ### START CODE HERE ###
     
     # Step 1: CONV layer (≈4 lines)
-    X = None                                 # CONV1D
-    X = None                                 # Batch normalization
-    X = None                                 # ReLu activation
-    X = None                                 # dropout (use 0.8)
+    X = Conv1D(filters=196,kernel_size=15,strides=4)(X_input)                                 # CONV1D
+    X = BatchNormalization()(X)                                 # Batch normalization
+    X = Activation("relu")(X)                                 # ReLu activation
+    X = Dropout(rate=0.8)(X)                                      # dropout (use 0.8)
 
     # Step 2: First GRU Layer (≈4 lines)
-    X = None                                 # GRU (use 128 units and return the sequences)
-    X = None                                 # dropout (use 0.8)
-    X = None                                 # Batch normalization
+    X = GRU(units=128, return_sequences = True)(X)                                 # GRU (use 128 units and return the sequences)
+    X = Dropout(rate=0.8)(X)                                 # dropout (use 0.8)
+    X = BatchNormalization()(X)                               # Batch normalization
     
     # Step 3: Second GRU Layer (≈4 lines)
-    X = None                                 # GRU (use 128 units and return the sequences)
-    X = None                                 # dropout (use 0.8)
-    X = None                                 # Batch normalization
-    X = None                                 # dropout (use 0.8)
+    X = GRU(units=128, return_sequences = True)(X)                                 # GRU (use 128 units and return the sequences)
+    X = Dropout(rate=0.8)(X)                                 # dropout (use 0.8)
+    X = BatchNormalization()(X)                                 # Batch normalization
+    X = Dropout(rate=0.8)(X)                                 # dropout (use 0.8)
     
     # Step 4: Time-distributed dense layer (see given code in instructions) (≈1 line)
-    X = None # time distributed  (sigmoid)
+    X = TimeDistributed(Dense(1, activation = "sigmoid"))(X) # time distributed  (sigmoid)
 
     ### END CODE HERE ###
 
@@ -799,14 +799,14 @@ def model(input_shape):
     return model  
 
 
-# In[ ]:
+# In[82]:
 
 model = model(input_shape = (Tx, n_freq))
 
 
 # Let's print the model summary to keep track of the shapes.
 
-# In[ ]:
+# In[83]:
 
 model.summary()
 
@@ -848,20 +848,20 @@ model.summary()
 # * To save time, we've already trained a model for about 3 hours on a GPU using the architecture you built above, and a large training set of about 4000 examples. 
 # * Let's load the model. 
 
-# In[ ]:
+# In[84]:
 
 model = load_model('./models/tr_model.h5')
 
 
 # You can train the model further, using the Adam optimizer and binary cross entropy loss, as follows. This will run quickly because we are training just for one epoch and with a small training set of 26 examples. 
 
-# In[ ]:
+# In[85]:
 
 opt = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=0.01)
 model.compile(loss='binary_crossentropy', optimizer=opt, metrics=["accuracy"])
 
 
-# In[ ]:
+# In[86]:
 
 model.fit(X, Y, batch_size = 5, epochs=1)
 
@@ -870,7 +870,7 @@ model.fit(X, Y, batch_size = 5, epochs=1)
 # 
 # Finally, let's see how your model performs on the dev set.
 
-# In[ ]:
+# In[87]:
 
 loss, acc = model.evaluate(X_dev, Y_dev)
 print("Dev set accuracy = ", acc)
@@ -898,7 +898,7 @@ print("Dev set accuracy = ", acc)
 # 5. Use forward propagation on your model to compute the prediction at each output step
 # !-->
 
-# In[ ]:
+# In[88]:
 
 def detect_triggerword(filename):
     plt.subplot(2, 1, 1)
@@ -935,7 +935,7 @@ def detect_triggerword(filename):
 # `
 # !--> 
 
-# In[ ]:
+# In[89]:
 
 chime_file = "audio_examples/chime.wav"
 def chime_on_activate(filename, predictions, threshold):
@@ -962,19 +962,19 @@ def chime_on_activate(filename, predictions, threshold):
 
 # Let's explore how our model performs on two unseen audio clips from the development set. Lets first listen to the two dev set clips. 
 
-# In[ ]:
+# In[90]:
 
 IPython.display.Audio("./raw_data/dev/1.wav")
 
 
-# In[ ]:
+# In[91]:
 
 IPython.display.Audio("./raw_data/dev/2.wav")
 
 
 # Now lets run the model on these audio clips and see if it adds a chime after "activate"!
 
-# In[ ]:
+# In[92]:
 
 filename = "./raw_data/dev/1.wav"
 prediction = detect_triggerword(filename)
@@ -982,7 +982,7 @@ chime_on_activate(filename, prediction, 0.5)
 IPython.display.Audio("./chime_output.wav")
 
 
-# In[ ]:
+# In[93]:
 
 filename  = "./raw_data/dev/2.wav"
 prediction = detect_triggerword(filename)
@@ -1012,7 +1012,7 @@ IPython.display.Audio("./chime_output.wav")
 # * If your audio is recorded in a different format (such as mp3) there is free software that you can find online for converting it to wav. 
 # * If your audio recording is not 10 seconds, the code below will either trim or pad it as needed to make it 10 seconds. 
 
-# In[ ]:
+# In[94]:
 
 # Preprocess the audio to the correct format
 def preprocess_audio(filename):
@@ -1028,12 +1028,12 @@ def preprocess_audio(filename):
 
 # Once you've uploaded your audio file to Coursera, put the path to your file in the variable below.
 
-# In[ ]:
+# In[95]:
 
 your_filename = "audio_examples/my_audio.wav"
 
 
-# In[ ]:
+# In[96]:
 
 preprocess_audio(your_filename)
 IPython.display.Audio(your_filename) # listen to the audio you uploaded 
@@ -1041,7 +1041,7 @@ IPython.display.Audio(your_filename) # listen to the audio you uploaded
 
 # Finally, use the model to predict when you say activate in the 10 second audio clip, and trigger a chime. If beeps are not being added appropriately, try to adjust the chime_threshold.
 
-# In[ ]:
+# In[97]:
 
 chime_threshold = 0.5
 prediction = detect_triggerword(your_filename)
